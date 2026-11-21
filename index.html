@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCore AI Pro | Enterprise Pharmacy OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text">
+          <span class="brand-title">MedCore <span class="badge-pro">ENTERPRISE</span></span>
+          <span class="brand-sub" id="sidebarStoreName">Main Medical Store</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-view="pos">
+          <i data-lucide="shopping-bag"></i>
+          <span>POS Counter</span>
+          <kbd>F1</kbd>
+        </button>
+        <button class="nav-item" data-view="inventory">
+          <i data-lucide="package-search"></i>
+          <span>Stock &amp; Bulk CSV</span>
+          <span class="nav-pill warn" id="navLowStockBadge">2</span>
+        </button>
+        <button class="nav-item" data-view="analytics">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Sales &amp; Profit</span>
+        </button>
+        <button class="nav-item" data-view="settings">
+          <i data-lucide="sliders-horizontal"></i>
+          <span>Printer &amp; Backup</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-card">
+          <div class="status-row">
+            <span class="dot online"></span>
+            <span id="dbStatusText">Disk DB Active</span>
+          </div>
+          <div class="status-meta" id="dbPathLabel">D:\MedCoreData</div>
+        </div>
+        <button class="theme-btn" id="themeToggleBtn">
+          <i data-lucide="sun"></i>
+          <span id="themeLabel">Light Mode</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CENTER WORKSPACE -->
+    <main class="workspace">
+      <header class="topbar">
+        <div class="search-wrap">
+          <i data-lucide="scan-barcode"></i>
+          <input type="text" id="globalSearch" placeholder="Scan barcode or search medicine, salt formula, rack... (Ctrl + K)" autocomplete="off" />
+          <kbd>Ctrl K</kbd>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="btn-ghost" id="openRxModalBtn">
+            <i data-lucide="file-text"></i>
+            <span>AI Rx Scanner</span>
+          </button>
+          <button class="btn-primary" id="openAddMedBtn">
+            <i data-lucide="plus"></i>
+            <span>Add Medicine</span>
+          </button>
+        </div>
+      </header>
+
+            <div style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.32);color:#fbbf24;padding:8px 14px;border-radius:10px;font-size:12px;">
+        <strong>Caution &amp; Disclaimer:</strong> Single-terminal offline storage (export regular backups in <em>Printer &amp; Backup</em>). Clinical AI suggestions &amp; salt matches are decision-support aids only&mdash;always verify prescriptions manually.
+      </div>
+      <!-- BENTO KPI ROW -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>Today's Revenue</span>
+            <div class="kpi-icon emerald"><i data-lucide="wallet"></i></div>
+          </div>
+          <div class="kpi-val" id="kpiRevenue">Rs. 0</div>
+          <div class="kpi-foot" id="kpiBillsCount">0 invoices generated today</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>Today's Net Profit</span>
+            <div class="kpi-icon indigo"><i data-lucide="trending-up"></i></div>
+          </div>
+          <div class="kpi-val accent-green" id="kpiProfit">Rs. 0</div>
+          <div class="kpi-foot" id="kpiMargin">0% net margin</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>Catalog SKUs</span>
+            <div class="kpi-icon sky"><i data-lucide="database"></i></div>
+          </div>
+          <div class="kpi-val" id="kpiTotalSkus">0</div>
+          <div class="kpi-foot">Indexed for instant barcode lookup</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>Stock Alerts</span>
+            <div class="kpi-icon rose"><i data-lucide="alert-triangle"></i></div>
+          </div>
+          <div class="kpi-val accent-red" id="kpiStockHealth">0 Out / 0 Low</div>
+          <div class="kpi-foot" id="kpiHealthyCount">All batches tracked in units</div>
+        </div>
+      </section>
+
+      <!-- VIEW 1: POS TERMINAL -->
+      <section class="view-section active" id="view-pos">
+        <div class="section-bar">
+          <div>
+            <h2>Quick Dispense Catalog</h2>
+            <p>Click to add, or switch between <strong>Box</strong>, <strong>Strip</strong>, and <strong>Loose Tablets</strong> in the bill.</p>
+          </div>
+          <div class="filter-pills" id="categoryFilters">
+            <button class="pill active" data-cat="All">All</button>
+            <button class="pill" data-cat="Analgesic">Analgesic</button>
+            <button class="pill" data-cat="Antibiotic">Antibiotic</button>
+            <button class="pill" data-cat="Gastro">Gastro</button>
+            <button class="pill" data-cat="Cardiac">Cardiac</button>
+          </div>
+        </div>
+
+        <div class="catalog-grid" id="catalogGrid"></div>
+      </section>
+
+      <!-- VIEW 2: SMART INVENTORY & BULK CSV -->
+      <section class="view-section" id="view-inventory">
+        <div class="section-bar">
+          <div>
+            <h2>Inventory &amp; Bulk CSV Importer</h2>
+            <p>Manage box/tablet ratios, barcodes, or import thousands of medicines via CSV.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn-ghost" id="downloadCsvTemplateBtn">
+              <i data-lucide="file-spreadsheet"></i>
+              <span>Sample CSV</span>
+            </button>
+            <button class="btn-primary" id="importCsvBtn">
+              <i data-lucide="upload"></i>
+              <span>Import CSV Catalog</span>
+            </button>
+            <input type="file" id="csvFileInput" accept=".csv" class="hidden" />
+            <select id="invFilterSelect" class="select-input" style="width:165px;">
+              <option value="all">All Stock</option>
+              <option value="low">Low &amp; Out of Stock</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Medicine &amp; Salt</th>
+                <th>Barcode / Rack</th>
+                <th>Pack Ratio</th>
+                <th>Box Cost / Retail</th>
+                <th>Stock (Units)</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 3: REVENUE & PROFIT ANALYTICS -->
+      <section class="view-section" id="view-analytics">
+        <div class="section-bar">
+          <div>
+            <h2>Sales Ledger &amp; Profit Analytics</h2>
+            <p>Live revenue vs. net profit performance and full invoice history.</p>
+          </div>
+          <button class="btn-ghost" id="exportCsvBtn">
+            <i data-lucide="download"></i>
+            <span>Export Sales CSV</span>
+          </button>
+        </div>
+
+        <div class="analytics-grid">
+          <div class="chart-card">
+            <canvas id="profitChart" height="140"></canvas>
+          </div>
+          <div class="table-card">
+            <div class="card-subhead">Recent Invoices</div>
+            <div id="recentSalesList" class="sales-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: SETTINGS & BACKUP -->
+      <section class="view-section" id="view-settings">
+        <div class="section-bar">
+          <div>
+            <h2>Store Profile, Thermal Printer &amp; Disk Backup</h2>
+            <p>Configure silent 80mm thermal printing, currency, and full database backups.</p>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Pharmacy / Medical Store Name</label>
+              <input type="text" id="setStoreName" value="MEDCORE PHARMACY" />
+            </div>
+            <div class="form-group">
+              <label>Address / License Tagline</label>
+              <input type="text" id="setStoreTagline" value="Main Medical Store - Licensed Pharmacy" />
+            </div>
+            <div class="form-group">
+              <label>Currency Symbol</label>
+              <select id="setCurrency" class="select-input">
+                <option value="Rs.">PKR (Rs.)</option>
+                <option value="$">USD ($)</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Thermal Print Mode</label>
+              <select id="setSilentPrint" class="select-input">
+                <option value="preview">Show Receipt Preview Modal (Choose Print / Save / Skip)</option><option value="silent">Direct Silent Thermal Print (Requires Default Thermal Printer)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Active Counter / Operator</label>
+              <input type="text" id="setStaffName" value="Counter 1 - Pharmacist" />
+            </div>
+            <div class="form-group">
+              <label>Default Tax Rate (%)</label>
+              <input type="number" id="setTaxRate" value="0" min="0" max="30" />
+            </div>
+          </div>
+                      <div class="form-group full">
+              <label>Gemini AI API Key (Optional &mdash; BYOK for Live Clinical LLM)</label>
+              <input type="password" id="setApiKey" placeholder="Paste your Google AI Studio Gemini API key (leave blank for offline rules mode)" />
+            </div>
+          <div class="settings-actions">
+            <button class="btn-primary" id="saveSettingsBtn">
+              <i data-lucide="check"></i>
+              <span>Save Configuration</span>
+            </button>
+            <button class="btn-ghost" id="exportBackupBtn">
+              <i data-lucide="download"></i>
+              <span>Backup Full DB (.json)</span>
+            </button>
+            <button class="btn-ghost" id="importBackupBtn">
+              <i data-lucide="upload"></i>
+              <span>Restore Backup</span>
+            </button>
+            <input type="file" id="importBackupFile" accept=".json" class="hidden" />
+                        <button class="btn-ghost danger-text" id="clearDemoStockBtn">
+              <i data-lucide="trash-2"></i>
+              <span>Clear Demo Products (Start Blank)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- RIGHT DOCK: CHECKOUT BILL & CLINICAL AI -->
+    <aside class="right-dock">
+      <div class="dock-tabs">
+        <button class="dock-tab active" data-dock="cart">
+          <i data-lucide="receipt"></i>
+          <span>Active Bill (<span id="cartBadgeCount">0</span>)</span>
+        </button>
+        <button class="dock-tab" data-dock="ai">
+          <i data-lucide="bot"></i>
+          <span>Clinical AI</span>
+        </button>
+      </div>
+
+      <!-- TAB A: CHECKOUT BILL WITH UNIT/TABLET SELECTOR -->
+      <div class="dock-pane active" id="dock-cart">
+        <div class="customer-fields">
+          <input type="text" id="custName" placeholder="Patient / Customer Name (Optional)" />
+          <input type="text" id="docName" placeholder="Prescribing Doctor (Optional)" />
+        </div>
+
+        <div id="aiSafetyBanner" class="safety-banner hidden"></div>
+
+        <div class="cart-items" id="cartItemsContainer"></div>
+
+        <div class="checkout-summary">
+          <div class="sum-row">
+            <span>Subtotal</span>
+            <span id="billSubtotal">Rs. 0</span>
+          </div>
+          <div class="sum-row">
+            <span>Discount (%)</span>
+            <input type="number" id="billDiscount" value="0" min="0" max="50" class="mini-input" />
+          </div>
+          <div class="sum-row total">
+            <span>Payable Total</span>
+            <span id="billTotal">Rs. 0</span>
+          </div>
+
+          <div class="checkout-controls">
+            <select id="paymentMethod" class="select-input">
+              <option value="Cash">Cash Payment</option>
+              <option value="Card">Card / POS</option>
+              <option value="Transfer">Easypaisa / JazzCash / Bank</option>
+            </select>
+            <button class="btn-primary full-btn" id="completeSaleBtn">
+              <i data-lucide="printer"></i>
+              <span>Complete &amp; Print Receipt (F12)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB B: OFFLINE CLINICAL AI -->
+      <div class="dock-pane" id="dock-ai">
+        <div class="ai-chat-feed" id="aiChatFeed">
+          <div class="ai-msg bot">
+            <div class="ai-msg-title">Clinical AI Decision Support</div>
+            <p>Hello Pharmacist! I monitor your live disk inventory and active bill locally. Ask for generic salt substitutes, duplicate-salt alerts, or stock-out forecasts.</p>
+          </div>
+        </div>
+
+        <div class="ai-quick-prompts">
+          <button class="chip-btn" data-prompt="Which medicines are low or out of stock?">Stock-out risks</button>
+          <button class="chip-btn" data-prompt="Suggest substitutes for out of stock medicines">Salt substitutes</button>
+          <button class="chip-btn" data-prompt="Check active cart for duplicate salts or interactions">Audit active bill</button>
+        </div>
+
+        <form class="ai-input-bar" id="aiChatForm">
+          <input type="text" id="aiPromptInput" placeholder="Ask about salts, interactions, stock..." autocomplete="off" />
+          <button type="submit" class="btn-primary icon-only"><i data-lucide="send"></i></button>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+  <!-- MODAL: ADD / EDIT MEDICINE WITH PACK RATIO & BARCODE -->
+  <div class="modal-backdrop hidden" id="medModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="medModalTitle">Add New Medicine</h3>
+        <button class="icon-close" id="closeMedModal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="medForm" class="modal-body">
+        <input type="hidden" id="editMedId" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Brand Name</label>
+            <input type="text" id="mName" required placeholder="e.g. Panadol 500mg" />
+          </div>
+          <div class="form-group">
+            <label>Generic Salt Formula</label>
+            <input type="text" id="mSalt" required placeholder="e.g. Paracetamol" />
+          </div>
+          <div class="form-group">
+            <label>Category (Optional &mdash; Type Custom or Leave Blank)</label>
+            <input type="text" id="mCat" list="catSuggestions" placeholder="e.g. Tablet, Syrup, Surgical (or leave blank)" />
+            <datalist id="catSuggestions">
+              <option value="Analgesic">
+              <option value="Antibiotic">
+              <option value="Gastro">
+              <option value="Cardiac">
+              <option value="Syrup / Drops">
+              <option value="Surgical">
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label>Barcode (Scan or Type)</label>
+            <input type="text" id="mBarcode" placeholder="e.g. 896400123456" />
+          </div>
+          <div class="form-group">
+            <label>Rack Location</label>
+            <input type="text" id="mRack" required placeholder="e.g. Rack A-01" />
+          </div>
+          <div class="form-group">
+            <label>Tablets / Units per Box</label>
+            <input type="number" id="mPackSize" required min="1" value="10" />
+          </div>
+          <div class="form-group">
+            <label>Purchase Cost (Per Box)</label>
+            <input type="number" id="mCost" required min="1" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label>Retail Price (Per Box)</label>
+            <input type="number" id="mPrice" required min="1" step="0.01" />
+          </div>
+          <div class="form-group full">
+            <label>Total Stock (In Loose Tablets / Units)</label>
+            <input type="number" id="mStock" required min="0" />
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-ghost" id="cancelMedModal">Cancel</button>
+          <button type="submit" class="btn-primary">Save to Disk DB</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AI PRESCRIPTION AUTO-FILL -->
+  <div class="modal-backdrop hidden" id="rxModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>AI Prescription Auto-Fill</h3>
+        <button class="icon-close" id="closeRxModal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="muted-text">Paste prescription notes below. Local AI matches catalog medicines and adds available stock to the active bill.</p>
+        <textarea id="rxTextInput" rows="4" class="textarea-input" placeholder="Example: Tab Panadol 500mg, Cap Risek 40mg, Tab Augmentin 625mg"></textarea>
+        <div class="modal-foot">
+          <button type="button" class="btn-ghost" id="cancelRxModal">Cancel</button>
+          <button type="button" class="btn-primary" id="parseRxBtn">
+            <i data-lucide="sparkles"></i>
+            <span>Extract &amp; Add to Bill</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- MODAL: RECEIPT PREVIEW (PRINT / SAVE / CLOSE) -->
+  <div class="modal-backdrop hidden" id="receiptModal">
+    <div class="modal-box" style="width:380px;">
+      <div class="modal-head">
+        <h3>Invoice Generated</h3>
+        <button class="icon-close" id="closeReceiptModal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="receiptPreviewBox" style="background:#fff;color:#000;padding:14px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.45;max-height:55vh;overflow-y:auto;"></div>
+        <div class="modal-foot" style="justify-content:space-between;">
+          <button type="button" class="btn-ghost" id="skipPrintBtn">Close (No Print)</button>
+          <button type="button" class="btn-primary" id="confirmPrintBtn">
+            <i data-lucide="printer"></i>
+            <span>Print / Save PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT-ONLY RECEIPT -->
+  <div id="printReceiptArea" class="print-only"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

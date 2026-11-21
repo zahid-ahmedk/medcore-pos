@@ -1,0 +1,30 @@
+{
+  "name": "medcore-ai-pro",
+  "productName": "MedCore AI Pro",
+  "version": "1.0.0",
+  "description": "Open-Source Pharmacy POS & Inventory System",
+  "author": "Zahid Ahmed",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.zahidahmed.medcore",
+    "productName": "MedCore AI Pro",
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
