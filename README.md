@@ -1,8 +1,8 @@
 # MedCore AI Pro — Open-Source Pharmacy POS & Inventory System
 
-![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)
-![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20PWA%20%7C%20Windows%20.exe-blue.svg)
-![AI Engine](https://img.shields.io/badge/Clinical%20AI-100%25%20Offline%20%7C%20Zero%20API%20Keys-indigo.svg)
+![Counter POS Dashboard](screenshots/pos-terminal.png)
+![Smart Inventory & Bulk CSV](screenshots/inventory-csv.png)
+![Sales & Profit Analytics](screenshots/sales-analytics.png)
 
 An offline-first, open-source **Pharmacy Point-of-Sale (POS)**, **Predictive Inventory Manager**, and **Clinical Decision Support Assistant** built with HTML5, CSS3, JavaScript, Chart.js, and Electron. **Zero API keys, backend servers, or recurring subscriptions required.**
 
