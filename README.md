@@ -11,10 +11,10 @@ An offline-first, open-source **Pharmacy Point-of-Sale (POS)**, **Predictive Inv
 ## Application Previews
 
 ### Counter POS & Live Financial KPIs
-![Counter POS Dashboard](screenshots/pos-terminal.jpg)
+![Counter POS Dashboard](screenshots/pos-terminal.png)
 
 ### Built-in Offline Clinical AI Pharmacist
-![AI Pharmacist Assistant](screenshots/inventory-csv.jpg)
+![AI Pharmacist Assistant](screenshots/inventory-csv.png)
 
 ### Revenue, Net Profit/Loss Analytics & Thermal Receipt Output
 ![Analytics and Thermal Receipt](screenshots/sales-analytics.png)
